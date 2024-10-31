@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:mesho/main.dart';
 import 'package:mesho/modules/categories/models/category_model.dart';
 import 'package:mesho/modules/categories/models/sidebar_category_model.dart';
 import 'package:mesho/modules/categories/widgets/category_card_main_view.dart';
 import 'package:mesho/modules/categories/widgets/category_card_sidebar.dart';
 import 'package:mesho/modules/categories/widgets/category_left_border.dart';
 import 'package:mesho/utils/global_text_styles.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -30,6 +32,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   ];
   String selectedCategory = 'Kids';
   ValueNotifier<int> selectedIndex = ValueNotifier(0);
+  bool zoomIn = true;
+  final TransformationController _transformationController = TransformationController();
+  double _currentScale = 1.0;
 
   final List<CategoryModel> categories = [
     CategoryModel(
@@ -75,6 +80,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       productName: 'Furniture',
     ),
   ];
+
+  void _zoomIn() {
+    setState(() {
+      _currentScale += 0.1;
+      _transformationController.value = Matrix4.identity()..scale(_currentScale);
+    });
+  }
+
+  void _zoomOut() {
+    setState(() {
+      _currentScale -= 0.1;
+      _transformationController.value = Matrix4.identity()..scale(_currentScale);
+    });
+  }
 
   @override
   void initState() {
@@ -162,91 +181,131 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           const SizedBox(width: 20),
         ],
       ),
-      body: Row(
-        children: [
-          // sidebar
-          Container(
-            width: 92,
-            decoration: BoxDecoration(
-              color: const Color(0xffF8F7FE),
-              boxShadow: [
-                BoxShadow(color: Colors.grey.shade200, offset: const Offset(1, 0), spreadRadius: 1, blurRadius: 5),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  children: [
-                    // categories list
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _sidebarScrollController,
-                        itemCount: sideBarCategories.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          final category = sideBarCategories[index];
-
-                          return ValueListenableBuilder(
-                            valueListenable: selectedIndex,
-                            builder: (context, value, child) => CategoryCardSidebar(
-                              categoryImage: category.image,
-                              categoryName: category.name,
-                              isCategorySelected: selectedIndex.value == index,
-                              onTap: () {
-                                setState(() {
-                                  selectedCategory = category.name;
-                                  selectedIndex.value = index;
-                                  scrollToCategory(index);
-                                });
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    )
+      body: InteractiveViewer(
+        transformationController: _transformationController,
+        boundaryMargin: const EdgeInsets.all(0.0),
+        child: SizedBox(
+          width: 100.w,
+          child: Row(
+            children: [
+              // sidebar
+              Container(
+                width: 12.h,
+                decoration: BoxDecoration(
+                  color: const Color(0xffF8F7FE),
+                  boxShadow: [
+                    BoxShadow(color: Colors.grey.shade200, offset: const Offset(1, 0), spreadRadius: 1, blurRadius: 5),
                   ],
                 ),
+                child: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        // categories list
+                        Expanded(
+                          child: ListView.builder(
+                            controller: _sidebarScrollController,
+                            itemCount: sideBarCategories.length,
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              final category = sideBarCategories[index];
 
-                // left border
-                ValueListenableBuilder(
-                  valueListenable: selectedIndex,
-                  builder: (context, value, child) => CategoryLeftBorder(selectedIndex: value),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14.18),
+                              return ValueListenableBuilder(
+                                valueListenable: selectedIndex,
+                                builder: (context, value, child) => CategoryCardSidebar(
+                                  categoryImage: category.image,
+                                  categoryName: category.name,
+                                  isCategorySelected: selectedIndex.value == index,
+                                  onTap: () {
+                                    setState(() {
+                                      selectedCategory = category.name;
+                                      selectedIndex.value = index;
+                                      scrollToCategory(index);
 
-          // main view
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 14.18,
-                right: 24.37,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 23.01),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _contentScrollController,
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        var category = categories[index];
-                        return CategoryCardMainView(
-                          categoryName: category.categoryName,
-                          subCategoryNames: category.subCategoryNames,
-                          categoryImage: category.categoryImage,
-                          productName: category.productName,
-                        );
-                      },
+                                      WidgetsBinding.instance.addPostFrameCallback(
+                                        (timeStamp) {
+                                          indicatorHeight.value = context.size?.height;
+                                        },
+                                      );
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      ],
                     ),
-                  ),
-                ],
+
+                    // left border
+                    ValueListenableBuilder(
+                      valueListenable: selectedIndex,
+                      builder: (context, value, child) => CategoryLeftBorder(selectedIndex: value),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 14.18),
+
+              // main view
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    // left: 14.18,
+                    right: 24.37,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 23.01),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: _contentScrollController,
+                          itemCount: categories.length,
+                          itemBuilder: (context, index) {
+                            var category = categories[index];
+                            return CategoryCardMainView(
+                              categoryName: category.categoryName,
+                              subCategoryNames: category.subCategoryNames,
+                              categoryImage: category.categoryImage,
+                              productName: category.productName,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // zoom out button
+          if (_currentScale > 1)
+            IconButton(
+              onPressed: _zoomOut,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xff8034DA),
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.zoom_out),
             ),
+
+          const SizedBox(width: 5),
+
+          // zoom in button
+          IconButton(
+            onPressed: _zoomIn,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff8034DA),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.zoom_in),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class GlobalTextStyles {
 
@@ -21,12 +22,12 @@ class GlobalTextStyles {
   Text h2(String title){
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Manrope',
-        fontSize: 14.0,
+        fontSize: 15.5.sp,
         fontWeight: FontWeight.w600,
         height: 18 / 14,
-        color: Color(0xff000000),
+        color: const Color(0xff000000),
       ),
     );
   }
@@ -52,7 +53,8 @@ class GlobalTextStyles {
       title,
       style: TextStyle(
         fontFamily: 'Manrope',
-        fontSize: 10.0,
+        // fontSize: 10.0,
+        fontSize: 12.6.sp,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
         height: 18 / 10,
         color: const Color(0xff000000),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mesho/main.dart';
 import 'package:mesho/utils/global_text_styles.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class CategoryCardSidebar extends StatelessWidget {
   final GlobalTextStyles _globalTextStyles = GlobalTextStyles();
@@ -8,43 +10,60 @@ class CategoryCardSidebar extends StatelessWidget {
   final bool isCategorySelected;
   final void Function()? onTap;
 
-  CategoryCardSidebar({super.key, required this.categoryImage, required this.categoryName, this.isCategorySelected = false, required this.onTap,});
+  CategoryCardSidebar({
+    super.key,
+    required this.categoryImage,
+    required this.categoryName,
+    this.isCategorySelected = false,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isCategorySelected ? Colors.white : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 13.96),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) {
+            indicatorHeight.value = context.size?.height;
+          },
+        );
 
-            // circle image
-            Container(
-              height: 45,
-              width: 45,
-              decoration: BoxDecoration(
-                image: DecorationImage(image: AssetImage(categoryImage)),
-                shape: BoxShape.circle,
-                color: const Color(0xfff0eeff),
-              ),
+        return InkWell(
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isCategorySelected ? Colors.white : null,
             ),
-            const SizedBox(height: 5.5),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: 1.5.h),
 
-            // category name
-            _globalTextStyles.h4(categoryName, isSelected: isCategorySelected),
+                // circle image
+                Container(
+                  height: 5.2.h,
+                  width: 5.2.h,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(image: AssetImage(categoryImage)),
+                    shape: BoxShape.circle,
+                    color: const Color(0xfff0eeff),
+                  ),
+                ),
+                // const SizedBox(height: 5.5),
+                SizedBox(height: 0.7.h),
 
-            const SizedBox(height: 13),
+                // category name
+                _globalTextStyles.h4(categoryName, isSelected: isCategorySelected),
 
-            const Divider(height: 0, thickness: 1, color: Color(0xffF0F0F0)),
-          ],
-        ),
-      ),
+                SizedBox(height: 1.5.h),
+
+                const Divider(height: 0, thickness: 1, color: Color(0xffF0F0F0)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
